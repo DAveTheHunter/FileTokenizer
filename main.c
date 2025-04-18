@@ -1,64 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 
-#define buffer 1024
-#define Delim " \n\t\r\a,"
+#define DELIM " \t\n\r\a"
+#define SIZE 1024
 
-int size = buffer; 
-
-
-char** Tokenize(char* Readed){
-    char* Token;
-    char** tokens = malloc(sizeof(char) * size);
-     if (!tokens) {
-       fprintf(stderr, "Allocation error");
-       exit(EXIT_FAILURE);
-     }  
-     int pos = 0;  
-    Token = strtok(Readed,Delim);
-   while (Token != NULL) {
-       tokens[pos] = Token;
-       if (pos >= size) {
-         size+=buffer;    
-         tokens = realloc(tokens, sizeof(char*) * size);
-       }
-      Token = strtok(NULL,Delim);
-    }
-  return tokens;
+char** tokenize(char *readed){
+  char* token;
+   int size = SIZE;
+  int pos = 0;
+  char** tokens = malloc(sizeof(char*) * size);
+   token = strtok(readed, DELIM);
+  while(token != NULL){
+   tokens[pos] = token;
+   pos++;
+   if(pos >= size){
+    size += 1024;
+    tokens = realloc(tokens, sizeof(char*) * size);
+ } 
+  token = strtok(NULL, DELIM);
+  } 
+  tokens[pos] = NULL; 
+ return tokens;
 }
 
-void Sort(char** tokens){
-  for (int i = 0;i < sizeof(tokens)/sizeof(tokens[0]); i++) {
-   for (int j = i + 1;j < sizeof(tokens)/sizeof(tokens[0]); j++) {
-       if (tokens[i] > tokens[j]) {
-         char *temp = tokens[i];
-        tokens[i] = tokens[j];
-        tokens[j] = temp;
-       }
-     } 
+
+void sort(char** tokens){
+  for(int i = 0;tokens[i] != NULL;i++)   
+   for(int j = i + 1;tokens[j] != NULL;j++){
+    if(strcmp(tokens[i], tokens[j]) > 0){
+     char* temp = tokens[i];
+     tokens[i] = tokens[j];
+     tokens[j] = temp;
+}
   }
-}
+ }
 
-void PrintTokens(char **tokens){
-   for (int i = 0;i < sizeof(tokens)/sizeof(tokens[0]);i++) {
-     printf("%s", tokens[i]); 
-   }
+int main(int argc,char *argv[]){
+  if (argc != 2) printf("Incorrect number of arguments");
+  FILE* file = fopen(argv[1], "r");  
+  int size = SIZE; 
+  char *readed = malloc(sizeof(char*) * size); 
+  int pos = 0;
+  char cur = fgetc(file);
+ 
+ while (cur != EOF) {
+   readed[pos] = cur;
+   pos++;
+   cur = fgetc(file);
+   if(pos > size){
+    size += 1024;
+    readed = realloc(readed, sizeof(char*) * size);
 }
-
-int main(int argc,char* argv[]){
-   if(argc != 2){
-     printf("Wrong Number of arguments");
-}
-   FILE* Tobe = fopen(argv[1], "r");
-   char *Readed = malloc(sizeof(char*) * size);
-   fgets(Readed, sizeof(Readed), Tobe);
-  //tokenize the readed value
-  char** val =Tokenize(Readed);  
-  //sort the tokens
-  Sort(val); 
-  //Print the tokens
-  PrintTokens(val);
+  }
+  fclose(file);
+  readed[pos] = '\0';
+  char** tokens = tokenize(readed);
+  sort(tokens);   
+   
+   for(int i = 0;tokens[i] != NULL;i++)
+     printf("%s\n", tokens[i]);
+ 
+  free(tokens);
   return 0;
 }
+
